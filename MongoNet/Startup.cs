@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoNet.Config;
+using MongoNet.Services;
 
 namespace MongoNet
 {
@@ -25,6 +27,10 @@ namespace MongoNet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<BookService>();
+
+            services.Configure<MongoConfig>(Configuration.GetSection("MongoConfig"));
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
