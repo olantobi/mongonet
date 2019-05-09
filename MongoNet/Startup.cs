@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -37,6 +39,11 @@ namespace MongoNet
             services.Configure<MongoConfig>(Configuration.GetSection("MongoConfig"));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            // configure authentication middleware
+            services
+                .AddAuthentication(GetAuthenticationOptions)
+                    .AddJwtBearer(GetJwtBearerOptions);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,7 +62,26 @@ namespace MongoNet
             }
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+
             app.UseMvc();
+        }
+
+        private void GetAuthenticationOptions(AuthenticationOptions options)
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }
+
+        private void GetJwtBearerOptions(JwtBearerOptions options)
+        {
+            IConfigurationSection configurationSection = Configuration.GetSection("IdentityServerConfig");
+            string authority = configurationSection.GetValue<string>("Authority");
+
+            options.Authority = authority;            
+            options.Audience = authority + "/resources";
+            options.RequireHttpsMetadata = true;
         }
     }
 }
